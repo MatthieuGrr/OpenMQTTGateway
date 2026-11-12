@@ -87,8 +87,16 @@ void initCC1101() {
 
 #    if defined(RF_CC1101_SCK) && defined(RF_CC1101_MISO) && \
         defined(RF_CC1101_MOSI) && defined(RF_CC1101_CS)
-  THEENGS_LOG_TRACE(F("initCC1101 with custom SPI pins, SCK=%d, MISO=%d, MOSI=%d, CS=%d" CR), RF_CC1101_SCK, RF_CC1101_MISO, RF_CC1101_MOSI, RF_CC1101_CS);
-  ELECHOUSE_cc1101.setSpiPin(RF_CC1101_SCK, RF_CC1101_MISO, RF_CC1101_MOSI, RF_CC1101_CS);
+  // Only once: on ESP32, setSpiPin() calls pinMode(MISO, INPUT), which detaches
+  // MISO from the SPI peripheral; the driver begins SPI only on its first
+  // Init(), so a second call (e.g. before each transmission) leaves MISO
+  // unrouted and every register read returns 0.
+  static bool spiPinsSet = false;
+  if (!spiPinsSet) {
+    THEENGS_LOG_TRACE(F("initCC1101 with custom SPI pins, SCK=%d, MISO=%d, MOSI=%d, CS=%d" CR), RF_CC1101_SCK, RF_CC1101_MISO, RF_CC1101_MOSI, RF_CC1101_CS);
+    ELECHOUSE_cc1101.setSpiPin(RF_CC1101_SCK, RF_CC1101_MISO, RF_CC1101_MOSI, RF_CC1101_CS);
+    spiPinsSet = true;
+  }
 #    endif
 
   // Init() must run before getCC1101(): from driver V3.x on it is Init() that

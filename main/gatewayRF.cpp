@@ -190,7 +190,7 @@ void RFtoX() {
     RFdata["tre_state"] = bin2tristate(binary);
     RFdata["binary"] = binary;
 
-#  if defined(ESP32) || defined(ESP8266)
+#  if (defined(ESP32) || defined(ESP8266)) && !defined(RF_NO_RAW)
     unsigned int* raw = mySwitch.getReceivedRawdata();
     std::string rawDump;
     for (unsigned int i = 0; i < length * 2; i++) {
