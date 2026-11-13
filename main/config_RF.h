@@ -208,7 +208,9 @@ extern RFConfiguration iRFConfig;
 #define ACTIVE_RTL      3
 #define ACTIVE_RF2      4
 
-#ifdef ZgatewayRF
+#ifdef ACTIVE_RECEIVER
+// Default receiver chosen at build time (e.g. -DACTIVE_RECEIVER=3 for rtl_433)
+#elif defined(ZgatewayRF)
 #  define ACTIVE_RECEIVER ACTIVE_RF
 #elif defined(ZgatewayRF2)
 #  define ACTIVE_RECEIVER ACTIVE_RF2
