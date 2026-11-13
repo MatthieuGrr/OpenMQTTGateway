@@ -11,6 +11,7 @@ on:
         options:
           - esp32s3-supermini-cc1101-rtl_433
           - esp32s3-supermini-cc1101-rf
+          - esp32s3-supermini-ble
 
 jobs:
   build:
@@ -38,8 +39,11 @@ jobs:
       - name: Collect firmware
         run: |
           mkdir out
-          cp ".pio/build/${{ inputs.env }}/firmware.bin" out/
-          cd out && sha256sum firmware.bin | tee firmware.bin.sha256
+          b=".pio/build/${{ inputs.env }}"
+          cp "$b/firmware.bin" "$b/bootloader.bin" "$b/partitions.bin" out/
+          # boot_app0 (otadata) : nécessaire seulement pour un premier flash complet
+          cp "$(find ~/.platformio/packages -path '*tools/partitions/boot_app0.bin' | head -1)" out/
+          cd out && sha256sum *.bin | tee firmware.bin.sha256
 
       - uses: actions/upload-artifact@v7
         with:
