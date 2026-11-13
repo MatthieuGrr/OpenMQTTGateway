@@ -1,0 +1,48 @@
+name: Rosetta firmware
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "PlatformIO environment"
+        required: true
+        type: choice
+        default: esp32s3-supermini-cc1101-rtl_433
+        options:
+          - esp32s3-supermini-cc1101-rtl_433
+          - esp32s3-supermini-cc1101-rf
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio-${{ runner.os }}-${{ hashFiles('platformio.ini', 'rosetta.ini') }}
+          restore-keys: pio-${{ runner.os }}-
+
+      - name: Install PlatformIO
+        run: pip install platformio==6.1.19
+
+      - name: Build
+        run: pio run -e "${{ inputs.env }}"
+
+      - name: Collect firmware
+        run: |
+          mkdir out
+          cp ".pio/build/${{ inputs.env }}/firmware.bin" out/
+          cd out && sha256sum firmware.bin | tee firmware.bin.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.env }}
+          path: out/
+          retention-days: 14
