@@ -1344,6 +1344,12 @@ void updateAndHandleLEDsTask() {
 void setup() {
   //Launch serial for debugging purposes
   Serial.begin(SERIAL_BAUD);
+#if defined(SERIAL_TX_TIMEOUT_MS) && ARDUINO_USB_MODE && ARDUINO_USB_CDC_ON_BOOT
+  // Native USB CDC (HWCDC) blocks each write up to tx_timeout_ms (100 ms by default)
+  // when the host has the port open but nobody reads it; heavy logging then starves
+  // the loop and the MQTT keepalive. A 0 timeout drops log output instead.
+  Serial.setTxTimeoutMs(SERIAL_TX_TIMEOUT_MS);
+#endif
   Log.begin(LOG_LEVEL, &Serial);
   THEENGS_LOG_NOTICE(F(CR "************* WELCOME TO OpenMQTTGateway **************" CR));
 #if defined(CONFIG_IDF_TARGET_ESP32) && !defined(ZgatewayBT) && !defined(USE_BLUFI)
